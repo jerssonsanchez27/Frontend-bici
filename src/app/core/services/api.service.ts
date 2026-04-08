@@ -5,7 +5,7 @@ import { Cliente, Bicicleta, Inventario, Venta, VentaRequest } from '../../share
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-private readonly base = 'https://tienda-sena-production.up.railway.app/api';
+  private readonly base = 'https://backtienda-ygxkn5l8.b4a.run/api';
 
   constructor(private http: HttpClient) {}
 
@@ -35,14 +35,14 @@ private readonly base = 'https://tienda-sena-production.up.railway.app/api';
   }
 
   agregarStock(id: number, cantidad: number): Observable<Inventario> {
-  return this.http.put<Inventario>(`${this.base}/inventario/${id}/stock?cantidad=${cantidad}`, {});
-}
+    return this.http.put<Inventario>(`${this.base}/inventario/${id}/stock?cantidad=${cantidad}`, {});
+  }
 
-eliminarCliente(documento: string): Observable<void> {
-  return this.http.delete<void>(`${this.base}/clientes/${documento}`);
-}
+  eliminarCliente(documento: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/clientes/${documento}`);
+  }
 
-eliminarBicicleta(id: number): Observable<void> {
-  return this.http.delete<void>(`${this.base}/bicicletas/${id}`);
-}
+  eliminarBicicleta(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/bicicletas/${id}`);
+  }
 }
