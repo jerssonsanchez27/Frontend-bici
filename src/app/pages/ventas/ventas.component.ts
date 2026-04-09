@@ -1,10 +1,12 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Cliente, Bicicleta, Venta } from '../../shared/models/models';
-import { forkJoin } from 'rxjs';
+import Chart from 'chart.js/auto';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-ventas',
@@ -38,9 +40,8 @@ import { forkJoin } from 'rxjs';
             <select [(ngModel)]="form.codigoBicicleta" (ngModelChange)="calcularTotal()">
               <option value="">Seleccionar bicicleta</option>
               @for (b of bicicletas(); track b.codigo) {
-                          <option [value]="b.codigo">{{ b.marca }} {{ b.modelo }} — 
-                    {{ '$' + b.precio.toLocaleString() }}</option>
-}
+                <option [value]="b.codigo">{{ b.marca }} {{ b.modelo }} — {{ '$' + b.precio.toLocaleString() }}</option>
+              }
             </select>
           </div>
         </div>
@@ -54,7 +55,7 @@ import { forkJoin } from 'rxjs';
         </div>
         <div class="venta-total-row">
           <span class="label">Total:</span>
-         <span class="value">{{ '$' + total().toLocaleString() }}</span>
+          <span class="value">{{ '$' + total().toLocaleString() }}</span>
         </div>
         <button class="btn-primary" [disabled]="guardando()" (click)="registrarVenta()">
           {{ guardando() ? 'Registrando...' : 'Registrar Venta' }}
@@ -62,7 +63,13 @@ import { forkJoin } from 'rxjs';
       </div>
 
       <div class="table-card">
-        <div class="table-title">Historial de Ventas</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="table-title" style="margin-bottom:0">Historial de Ventas</div>
+          <button (click)="exportarPDF()"
+            style="background:var(--primary);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            📄 Exportar PDF
+          </button>
+        </div>
         @if (loading()) {
           <div class="loading-state"><div class="spinner"></div> Cargando...</div>
         } @else if (ventas().length === 0) {
@@ -82,7 +89,7 @@ import { forkJoin } from 'rxjs';
                   <td>{{ v.cliente?.nombre }}</td>
                   <td>{{ getPrimerDetalle(v) }}</td>
                   <td>{{ getCantidad(v) }}</td>
-                 <td>{{ '$' + v.total.toLocaleString() }}</td>
+                  <td>{{ '$' + v.total.toLocaleString() }}</td>
                   <td>{{ fechaHoy }}</td>
                 </tr>
               }
@@ -91,9 +98,20 @@ import { forkJoin } from 'rxjs';
         }
       </div>
     </div>
+
+    <!-- Gráfica de ventas -->
+    <div class="table-card" style="margin-top:24px;">
+      <div class="table-title">Ventas por Bicicleta</div>
+      <div style="max-height:300px;display:flex;justify-content:center;">
+        <canvas #ventasChart></canvas>
+      </div>
+    </div>
   `
 })
-export class VentasComponent implements OnInit {
+export class VentasComponent implements OnInit, AfterViewInit {
+  @ViewChild('ventasChart') ventasChartRef!: ElementRef<HTMLCanvasElement>;
+  chart: Chart | null = null;
+
   clientes = signal<Cliente[]>([]);
   bicicletas = signal<Bicicleta[]>([]);
   ventas = signal<Venta[]>([]);
@@ -110,22 +128,86 @@ export class VentasComponent implements OnInit {
 
   constructor(private api: ApiService, private toast: ToastService) {}
 
-ngOnInit() {
-  this.api.getClientes().subscribe({
-    next: (clientes) => this.clientes.set(clientes),
-    error: () => this.toast.show('Error cargando clientes', 'error')
-  });
+  ngOnInit() {
+    this.api.getClientes().subscribe({
+      next: (clientes) => this.clientes.set(clientes),
+      error: () => this.toast.show('Error cargando clientes', 'error')
+    });
 
-  this.api.getBicicletas().subscribe({
-    next: (bicicletas) => this.bicicletas.set(bicicletas),
-    error: () => this.toast.show('Error cargando bicicletas', 'error')
-  });
+    this.api.getBicicletas().subscribe({
+      next: (bicicletas) => this.bicicletas.set(bicicletas),
+      error: () => this.toast.show('Error cargando bicicletas', 'error')
+    });
 
-  this.api.getVentas().subscribe({
-    next: (ventas) => { this.ventas.set(ventas); this.loading.set(false); },
-    error: () => { this.loading.set(false); }
-  });
-}
+    this.api.getVentas().subscribe({
+      next: (ventas) => {
+        this.ventas.set(ventas);
+        this.loading.set(false);
+        setTimeout(() => this.renderGrafica(), 100);
+      },
+      error: () => { this.loading.set(false); }
+    });
+  }
+
+  ngAfterViewInit() {}
+
+  renderGrafica() {
+    if (!this.ventasChartRef) return;
+    if (this.chart) { this.chart.destroy(); }
+
+    const conteo: Record<string, number> = {};
+    this.ventas().forEach(v => {
+      const nombre = this.getPrimerDetalle(v);
+      conteo[nombre] = (conteo[nombre] || 0) + 1;
+    });
+
+    const labels = Object.keys(conteo);
+    const data = Object.values(conteo);
+
+    this.chart = new Chart(this.ventasChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Ventas',
+          data,
+          backgroundColor: '#2d6a4f',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  }
+
+  exportarPDF() {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('BikeStore - Historial de Ventas', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generado el: ${this.fechaHoy}`, 14, 30);
+
+    const filas = this.ventas().map(v => [
+      v.id,
+      v.cliente?.nombre ?? '—',
+      this.getPrimerDetalle(v),
+      this.getCantidad(v),
+      '$' + v.total.toLocaleString()
+    ]);
+
+    autoTable(doc, {
+      startY: 38,
+      head: [['ID', 'Cliente', 'Bicicleta', 'Cantidad', 'Total']],
+      body: filas as any,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [45, 106, 79] }
+    });
+
+    doc.save('ventas-bikestore.pdf');
+  }
 
   calcularTotal() {
     const bici = this.bicicletas().find(b => b.codigo === this.form.codigoBicicleta);
@@ -140,7 +222,10 @@ ngOnInit() {
     this.api.createVenta({ ...this.form }).subscribe({
       next: () => {
         this.api.getVentas().subscribe({
-          next: (ventas) => this.ventas.set(ventas)
+          next: (ventas) => {
+            this.ventas.set(ventas);
+            setTimeout(() => this.renderGrafica(), 100);
+          }
         });
         this.toast.show('Venta registrada exitosamente');
         this.form = { documentoCliente: '', codigoBicicleta: '', cantidad: 1 };
