@@ -27,7 +27,8 @@ import { Cliente } from '../../shared/models/models';
       <div style="margin-bottom:16px;">
         <input
           type="text"
-          [(ngModel)]="busqueda"
+          [value]="busqueda()"
+          (input)="busqueda.set($any($event.target).value)"
           placeholder="🔍 Buscar por nombre o documento..."
           style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:0.92rem;outline:none;">
       </div>
@@ -36,7 +37,7 @@ import { Cliente } from '../../shared/models/models';
         <div class="loading-state"><div class="spinner"></div> Cargando clientes...</div>
       } @else if (clientesFiltrados().length === 0) {
         <div class="empty-state">
-          {{ busqueda ? 'No se encontraron clientes con "' + busqueda + '"' : 'No hay clientes registrados.' }}
+          {{ busqueda() ? 'No se encontraron clientes con "' + busqueda() + '"' : 'No hay clientes registrados.' }}
         </div>
       } @else {
         <table>
@@ -111,12 +112,12 @@ export class ClientesComponent implements OnInit {
   guardando = signal(false);
   showModal = false;
   clienteAEliminar: Cliente | null = null;
-  busqueda = '';
+  busqueda = signal('');
 
   clientesFiltrados = computed(() =>
     this.clientes().filter(c =>
-      c.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) ||
-      c.documento.toLowerCase().includes(this.busqueda.toLowerCase())
+      c.nombre.toLowerCase().includes(this.busqueda().toLowerCase()) ||
+      c.documento.toLowerCase().includes(this.busqueda().toLowerCase())
     )
   );
 
