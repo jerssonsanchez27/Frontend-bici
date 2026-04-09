@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
@@ -56,10 +56,19 @@ import { Bicicleta } from '../../shared/models/models';
 
       <div class="table-card">
         <div class="table-title">Catálogo de Bicicletas</div>
+        <div style="margin-bottom:16px;">
+          <input
+            type="text"
+            [(ngModel)]="busqueda"
+            placeholder="🔍 Buscar por marca, modelo o código..."
+            style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:0.92rem;outline:none;">
+        </div>
         @if (loading()) {
           <div class="loading-state"><div class="spinner"></div> Cargando...</div>
-        } @else if (bicicletas().length === 0) {
-          <div class="empty-state">No hay bicicletas registradas.</div>
+        } @else if (bicicletasFiltradas().length === 0) {
+          <div class="empty-state">
+            {{ busqueda ? 'No se encontraron bicicletas con "' + busqueda + '"' : 'No hay bicicletas registradas.' }}
+          </div>
         } @else {
           <table>
             <thead>
@@ -69,7 +78,7 @@ import { Bicicleta } from '../../shared/models/models';
               </tr>
             </thead>
             <tbody>
-              @for (b of bicicletas(); track b.id) {
+              @for (b of bicicletasFiltradas(); track b.id) {
                 <tr>
                   <td>{{ b.id }}</td>
                   <td><span class="mono">{{ b.codigo }}</span></td>
@@ -112,6 +121,15 @@ export class BicicletasComponent implements OnInit {
   loading = signal(true);
   guardando = signal(false);
   bicicletaAEliminar: Bicicleta | null = null;
+  busqueda = '';
+
+  bicicletasFiltradas = computed(() =>
+    this.bicicletas().filter(b =>
+      b.marca.toLowerCase().includes(this.busqueda.toLowerCase()) ||
+      b.modelo.toLowerCase().includes(this.busqueda.toLowerCase()) ||
+      b.codigo.toLowerCase().includes(this.busqueda.toLowerCase())
+    )
+  );
 
   form: Bicicleta = { codigo: '', marca: '', modelo: '', tipo: '', precio: 0 };
 

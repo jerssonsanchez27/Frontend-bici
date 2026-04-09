@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
@@ -24,10 +24,20 @@ import { Cliente } from '../../shared/models/models';
     </div>
 
     <div class="table-card">
+      <div style="margin-bottom:16px;">
+        <input
+          type="text"
+          [(ngModel)]="busqueda"
+          placeholder="🔍 Buscar por nombre o documento..."
+          style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:0.92rem;outline:none;">
+      </div>
+
       @if (loading()) {
         <div class="loading-state"><div class="spinner"></div> Cargando clientes...</div>
-      } @else if (clientes().length === 0) {
-        <div class="empty-state">No hay clientes registrados.</div>
+      } @else if (clientesFiltrados().length === 0) {
+        <div class="empty-state">
+          {{ busqueda ? 'No se encontraron clientes con "' + busqueda + '"' : 'No hay clientes registrados.' }}
+        </div>
       } @else {
         <table>
           <thead>
@@ -36,7 +46,7 @@ import { Cliente } from '../../shared/models/models';
             </tr>
           </thead>
           <tbody>
-            @for (cliente of clientes(); track cliente.documento; let i = $index) {
+            @for (cliente of clientesFiltrados(); track cliente.documento; let i = $index) {
               <tr>
                 <td>{{ i + 1 }}</td>
                 <td>{{ cliente.documento }}</td>
@@ -101,6 +111,14 @@ export class ClientesComponent implements OnInit {
   guardando = signal(false);
   showModal = false;
   clienteAEliminar: Cliente | null = null;
+  busqueda = '';
+
+  clientesFiltrados = computed(() =>
+    this.clientes().filter(c =>
+      c.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) ||
+      c.documento.toLowerCase().includes(this.busqueda.toLowerCase())
+    )
+  );
 
   form: Cliente = { documento: '', nombre: '', telefono: '' };
 
