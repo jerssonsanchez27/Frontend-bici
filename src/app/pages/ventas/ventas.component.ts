@@ -66,7 +66,7 @@ import autoTable from 'jspdf-autotable';
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
           <div class="table-title" style="margin-bottom:0">Historial de Ventas</div>
           <button (click)="exportarPDF()"
-           style="background:#2d6a4f;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+           style="background:#2d6a4f;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;margin-rigth:10px;">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
            <polyline points="14 2 14 8 20 8"/>
