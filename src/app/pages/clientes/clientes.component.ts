@@ -94,7 +94,7 @@ import { Cliente } from '../../shared/models/models';
       <div class="modal-backdrop" (click)="clienteAEliminar = null">
         <div class="modal-box" (click)="$event.stopPropagation()" style="width:380px">
           <h2>¿Eliminar cliente?</h2>
-          <p style="color:var(--text-muted);margin-bottom:24px;font-size:0.92rem;">
+          <p style="color:var(--text-muted);margin-bottom:25px;font-size:0.92rem;">
             Estás a punto de eliminar a <strong>{{ clienteAEliminar.nombre }}</strong>. Esta acción no se puede deshacer.
           </p>
           <div style="display:flex;gap:10px;">
