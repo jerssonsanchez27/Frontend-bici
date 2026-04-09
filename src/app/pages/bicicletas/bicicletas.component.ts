@@ -105,7 +105,7 @@ import { Bicicleta } from '../../shared/models/models';
       <div class="modal-backdrop" (click)="bicicletaAEliminar = null">
         <div class="modal-box" (click)="$event.stopPropagation()" style="width:380px">
           <h2>¿Eliminar bicicleta?</h2>
-          <p style="color:var(--text-muted);margin-bottom:24px;font-size:0.92rem;">
+          <p style="color:var(--text-muted);margin-bottom:25px;font-size:0.92rem;">
             Estás a punto de eliminar <strong>{{ bicicletaAEliminar.marca }} {{ bicicletaAEliminar.modelo }}</strong>. Esta acción no se puede deshacer.
           </p>
           <div style="display:flex;gap:10px;">
