@@ -5,8 +5,7 @@ import { Cliente, Bicicleta, Inventario, Venta, VentaRequest } from '../../share
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly base = 'https://backtienda-ygxkn5l8.b4a.run/api';
-
+private readonly base = 'https://backtienda-78pudd66.b4a.run/api';
   constructor(private http: HttpClient) {}
 
   getClientes(): Observable<Cliente[]> {
