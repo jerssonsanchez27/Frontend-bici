@@ -243,6 +243,21 @@ tbody tr:hover { background: #fafaf4; }
   padding: 10px 20px;
 }
 
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border);
+  padding: 11px 22px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover { background: var(--border); }
+}
+
 /* ── FORM CARD ── */
 .form-card {
   background: var(--bg-card);
@@ -448,7 +463,7 @@ tbody tr:hover { background: #fafaf4; }
 .help-btn {
   position: fixed;
   bottom: 24px; right: 24px;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   background: var(--green-dark);
   color: #fff;
   border: none;
@@ -461,4 +476,37 @@ tbody tr:hover { background: #fafaf4; }
   justify-content: center;
   box-shadow: var(--shadow);
   z-index: 50;
+  transition: background 0.18s, transform 0.1s;
+
+  &:hover { background: var(--green-mid); transform: scale(1.05); }
+}
+
+/* ── DARK MODE ── */
+body.dark {
+  --bg-main: #0f1117;
+  --bg-card: #1a1d27;
+  --text-primary: #f0f0f0;
+  --text-secondary: #aaa;
+  --text-muted: #666;
+  --border: #2a2d3a;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+
+  .sidebar { background: #0a0e14; }
+
+  .nav-item.active {
+    background: #1a1d27;
+    color: #b7e4c7;
+    svg { color: #b7e4c7; }
+  }
+
+  tbody tr:hover { background: #1e2130; }
+
+  .form-group input:read-only { background: #12151e; }
+
+  .modal-box { background: #1a1d27; }
+
+  .stat-icon { background: #1e2a22; }
+
+  .help-btn { background: var(--green-mid); }
 }
